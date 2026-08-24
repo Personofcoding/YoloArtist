@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>YOLO Artist Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: 'Outfit', sans-serif;
+      user-select: none;
+      overflow-x: hidden;
+    }
+    .halftone-bg {
+      background-color: #000;
+      background-image: radial-gradient(#333 15%, transparent 16%);
+      background-size: 8px 8px;
+    }
+    .app-screen {
+      display: none;
+      width: 100%;
+      min-height: 100dvh;
+      margin: 0 auto;
+      position: relative;
+      overflow-y: auto;
+    }
+    .app-screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body class="bg-black text-black">
+
+  <!-- SCREEN 1: LOGIN -->
+  <div id="screen-login" class="app-screen active bg-white p-6 justify-center items-center">
+    <div class="text-center mb-8">
+      <h1 class="text-6xl font-extrabold tracking-tighter leading-none">yolo</h1>
+      <p class="text-xl font-bold tracking-tight text-gray-800 -mt-1">artist</p>
+    </div>
+
+    <form onsubmit="handleLogin(event)" class="w-full max-w-sm space-y-4 text-center px-4">
+      <input type="text" id="artistID" placeholder="artistID" required
+        class="w-full bg-neutral-900 text-white placeholder-gray-400 text-center text-xl font-bold py-4 px-6 rounded-full focus:outline-none">
+      
+      <input type="password" id="artistPass" placeholder="artistPass" required
+        class="w-full bg-neutral-900 text-white placeholder-gray-400 text-center text-xl font-bold py-4 px-6 rounded-full focus:outline-none">
+
+      <p id="login-error" class="text-red-600 text-xs font-bold hidden">invalid artistID or artistPass</p>
+
+      <div class="py-2">
+        <p class="font-bold text-sm">dont have an ArtistID & Pass?</p>
+        <p class="text-xs font-semibold text-gray-600">DM us!!</p>
+        <p class="text-xs font-extrabold mt-0.5">@Yololabell - tiktok</p>
+      </div>
+
+      <button type="submit" 
+        class="w-full bg-neutral-900 text-white text-2xl font-extrabold py-3.5 rounded-full hover:bg-black transition-all">
+        log in
+      </button>
+    </form>
+  </div>
+
+  <!-- SCREEN 2: HOME DASHBOARD -->
+  <div id="screen-home" class="app-screen bg-white p-5 justify-between max-w-md mx-auto">
+    <div>
+      <div class="flex justify-between items-center w-full mb-6 mt-2">
+        <div>
+          <h1 class="text-4xl font-extrabold tracking-tighter leading-none">yolo</h1>
+          <p class="text-sm font-bold tracking-tight text-gray-800 -mt-1">artist</p>
+        </div>
+        <button onclick="handleLogout()" class="bg-neutral-900 text-white text-xs font-bold py-2 px-4 rounded-full">
+          log out
+        </button>
+      </div>
+
+      <!-- Main Card -->
+      <div class="bg-neutral-900 text-white rounded-3xl p-4 mb-3 relative overflow-hidden">
+        <div class="bg-[#FBF8EB] text-black rounded-2xl p-6 mb-4 flex flex-col items-center justify-center min-h-[140px]">
+          <div class="text-4xl font-black tracking-widest text-gray-300">YOLO</div>
+          <div class="text-xs font-bold tracking-widest text-gray-400">ARTIST HUB</div>
+        </div>
+        <div class="px-2 pb-2">
+          <h2 class="text-2xl font-bold">hey, <span id="display-name">[artist name]</span></h2>
+          <p class="text-lg font-semibold text-gray-300">what are you up to?</p>
+        </div>
+      </div>
+
+      <!-- Admin Panel Button -->
+      <button id="admin-panel-btn" onclick="navigateTo('screen-admin')" 
+        class="w-full bg-red-600 text-white text-xl font-extrabold py-3 px-6 rounded-full text-center mb-3 hidden">
+        ⚡ label manager panel
+      </button>
+
+      <!-- Action Buttons Grid -->
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <button onclick="navigateTo('screen-ai')" 
+          class="bg-neutral-900 text-white text-3xl font-extrabold py-4 px-6 rounded-full flex items-center justify-center gap-1">
+          AI <span class="text-lg">✦</span>
+        </button>
+        <button onclick="navigateTo('screen-contract')" 
+          class="bg-neutral-900 text-white text-2xl font-extrabold py-4 px-6 rounded-full flex items-center justify-center">
+          contract
+        </button>
+      </div>
+
+      <button onclick="navigateTo('screen-release')" 
+        class="w-full bg-neutral-900 text-white text-xl font-extrabold py-4 px-6 rounded-full text-center mb-3">
+        ➕ create new release
+      </button>
+
+      <button onclick="navigateTo('screen-cover')" 
+        class="w-full bg-neutral-900 text-white text-xl font-extrabold py-4 px-6 rounded-full text-center">
+        album cover designer
+      </button>
+    </div>
+
+    <!-- Messages / Announcements Bar -->
+    <div id="messages-bar" class="bg-neutral-100 rounded-2xl p-3 text-xs font-bold text-center border border-gray-200 my-2">
+      <span id="label-msg-display">📢 No new messages from @Yololabell</span>
+    </div>
+  </div>
+
+  <!-- SCREEN: CREATE RELEASE -->
+  <div id="screen-release" class="app-screen bg-black p-5 text-white max-w-md mx-auto">
+    <div class="flex items-center gap-3 mb-4 mt-2">
+      <button onclick="navigateTo('screen-home')" class="bg-white text-black font-extrabold rounded-full w-10 h-10 flex items-center justify-center text-xl shrink-0">&lt;</button>
+      <div class="bg-white text-black text-xl font-extrabold py-2 px-6 rounded-full flex-grow text-center">
+        Create Release
+      </div>
+    </div>
+
+    <form onsubmit="handleReleaseSubmit(event)" class="space-y-4 overflow-y-auto flex-grow pb-6">
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Track / Project Title</label>
+        <input type="text" id="rel-title" placeholder="e.g. Slay The Day" required
+          class="w-full bg-neutral-900 text-white p-3.5 rounded-full text-center text-sm font-bold focus:outline-none">
+      </div>
+
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Release Type</label>
+        <select id="rel-type" class="w-full bg-neutral-900 text-white p-3.5 rounded-full text-center text-sm font-bold focus:outline-none">
+          <option value="Single">Single</option>
+          <option value="EP">EP</option>
+          <option value="Album">Album</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Release Date</label>
+        <input type="date" id="rel-date" required
+          class="w-full bg-neutral-900 text-white p-3.5 rounded-full text-center text-sm font-bold focus:outline-none">
+      </div>
+
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Upload Audio File</label>
+        <input type="file" accept="audio/*" required
+          class="w-full bg-neutral-900 text-gray-300 p-3 rounded-full text-xs font-bold focus:outline-none">
+      </div>
+
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Artwork File</label>
+        <input type="file" accept="image/*" required
+          class="w-full bg-neutral-900 text-gray-300 p-3 rounded-full text-xs font-bold focus:outline-none">
+      </div>
+
+      <button type="submit" 
+        class="w-full bg-white text-black text-lg font-extrabold py-3.5 rounded-full text-center mt-4">
+        submit drop to label
+      </button>
+    </form>
+  </div>
+
+  <!-- SCREEN 3: ADMIN PANEL -->
+  <div id="screen-admin" class="app-screen bg-black p-5 text-white max-w-md mx-auto">
+    <div class="flex items-center gap-3 mb-4 mt-2">
+      <button onclick="navigateTo('screen-home')" class="bg-white text-black font-extrabold rounded-full w-10 h-10 flex items-center justify-center text-xl shrink-0">&lt;</button>
+      <div class="bg-white text-black text-lg font-extrabold py-2 px-6 rounded-full flex-grow text-center">
+        Label Manager
+      </div>
+    </div>
+
+    <div class="space-y-4 overflow-y-auto flex-grow pb-6">
+      <div class="bg-neutral-900 p-4 rounded-3xl space-y-3">
+        <h3 class="text-sm font-bold text-center uppercase tracking-wider text-gray-300">Create Artist Account</h3>
+        <input type="text" id="new-artist-id" placeholder="Artist ID" class="w-full bg-black text-white p-3 rounded-full text-center text-sm font-bold focus:outline-none">
+        <input type="text" id="new-artist-pass" placeholder="Password" class="w-full bg-black text-white p-3 rounded-full text-center text-sm font-bold focus:outline-none">
+        <button onclick="createNewAccount()" class="w-full bg-white text-black font-extrabold py-2.5 rounded-full text-sm">Create Account</button>
+      </div>
+
+      <div class="bg-neutral-900 p-4 rounded-3xl space-y-3">
+        <h3 class="text-sm font-bold text-center uppercase tracking-wider text-gray-300">Message Artists</h3>
+        <input type="text" id="label-broadcast-input" placeholder="Type announcement..." class="w-full bg-black text-white p-3 rounded-full text-center text-sm font-bold focus:outline-none">
+        <button onclick="sendLabelBroadcast()" class="w-full bg-white text-black font-extrabold py-2.5 rounded-full text-sm">Send Broadcast</button>
+      </div>
+
+      <div class="bg-neutral-900 p-4 rounded-3xl space-y-2">
+        <h3 class="text-sm font-bold text-center uppercase tracking-wider text-gray-300">Submitted Releases</h3>
+        <div id="submitted-releases-list" class="space-y-2 text-xs font-semibold text-gray-300">
+          <p class="text-center text-gray-500">No releases submitted yet</p>
+        </div>
+      </div>
+
+      <div class="bg-neutral-900 p-4 rounded-3xl space-y-2">
+        <h3 class="text-sm font-bold text-center uppercase tracking-wider text-gray-300">Submitted Covers</h3>
+        <div id="submitted-covers-list" class="space-y-2 text-xs font-semibold text-gray-300">
+          <p class="text-center text-gray-500">No submissions yet</p>
+        </div>
+      </div>
+
+      <div class="bg-neutral-900 p-4 rounded-3xl space-y-2">
+        <h3 class="text-sm font-bold text-center uppercase tracking-wider text-gray-300">Redirected AI Questions</h3>
+        <div id="redirected-questions-list" class="space-y-2 text-xs font-semibold text-gray-300">
+          <p class="text-center text-gray-500">No redirected questions</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: CONTRACT -->
+  <div id="screen-contract" class="app-screen bg-black p-5 text-white justify-between max-w-md mx-auto">
+    <div>
+      <div class="flex items-center gap-3 mb-4 mt-2">
+        <button onclick="navigateTo('screen-home')" class="bg-white text-black font-extrabold rounded-full w-10 h-10 flex items-center justify-center text-xl shrink-0">&lt;</button>
+        <div class="bg-white text-black text-xl font-extrabold py-2 px-6 rounded-full flex-grow text-center">
+          Contract
+        </div>
+      </div>
+
+      <div class="bg-white text-black rounded-3xl p-5 text-center text-xs font-bold leading-relaxed space-y-3 overflow-y-auto max-h-[55vh]">
+        <div>
+          <p class="font-extrabold text-sm">option 1: non-exclusive distribution deal</p>
+          <p>term: 3 years (can terminate early anytime with written notice)</p>
+          <p>royalties: 95% artist / 5% yolo</p>
+          <p class="font-medium text-[10px] mt-1 text-gray-600">flexibility: you keep 100% full creative freedom over where and how you drop your music.</p>
+        </div>
+        <hr class="border-gray-200">
+        <div>
+          <p class="font-extrabold text-sm">option 2: exclusive deal with explicit schedule exemption</p>
+          <p>term: 3 years | royalties: 95% artist / 5% yolo</p>
+        </div>
+        <hr class="border-gray-200">
+        <div>
+          <p class="font-extrabold text-sm">option 3: full catalog ingestion & management</p>
+          <p>term: 3 years | royalties: 95% artist / 5% yolo</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-2 mb-2">
+      <button onclick="alert('Contract PDF downloaded!')" class="w-full bg-white text-black text-lg font-extrabold py-3.5 rounded-full text-center">
+        download contract
+      </button>
+      <button onclick="terminateContract()" class="w-full bg-red-600 text-white text-lg font-extrabold py-3.5 rounded-full text-center">
+        terminate deal ⚠️
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: AI CHAT -->
+  <div id="screen-ai" class="app-screen halftone-bg p-5 justify-between max-w-md mx-auto">
+    <div>
+      <div class="flex items-center gap-3 mt-2 mb-2">
+        <button onclick="navigateTo('screen-home')" class="bg-white text-black font-extrabold rounded-full w-10 h-10 flex items-center justify-center text-xl shrink-0">&lt;</button>
+        <div class="bg-white text-black text-2xl font-extrabold py-2 px-6 rounded-full flex-grow text-center">
+          AI
+        </div>
+      </div>
+
+      <!-- AI Key Input Section -->
+      <div class="bg-neutral-900 rounded-2xl p-2.5 text-center flex items-center gap-2">
+        <input type="password" id="gemini-key-input" placeholder="Paste Gemini API Key..." 
+          class="bg-black text-white text-xs font-bold py-2 px-3 rounded-xl flex-grow focus:outline-none">
+        <button onclick="saveApiKey()" class="bg-white text-black text-xs font-extrabold py-2 px-3 rounded-xl">
+          Save Key
+        </button>
+      </div>
+    </div>
+
+    <div id="chat-messages" class="flex-grow my-3 overflow-y-auto space-y-3 px-1 flex flex-col max-h-[60vh]">
+      <div class="bg-white text-black p-3.5 rounded-2xl max-w-[85%] self-start text-xs font-bold shadow">
+        hey ho! ask me anything about your yolo drops!
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 mb-2">
+      <input type="text" id="ai-input" placeholder="ask questions!" 
+        class="bg-white text-black placeholder-black text-sm font-bold py-3.5 px-5 rounded-full flex-grow focus:outline-none">
+      <button onclick="sendMessage()" class="bg-white text-black font-extrabold rounded-full w-12 h-12 flex items-center justify-center text-xl shrink-0">
+        ^
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: ALBUM COVER MAKER -->
+  <div id="screen-cover" class="app-screen bg-black p-5 justify-between max-w-md mx-auto">
+    <div class="flex items-center gap-3 mt-2">
+      <button onclick="navigateTo('screen-home')" class="bg-white text-black font-extrabold rounded-full w-10 h-10 flex items-center justify-center text-xl shrink-0">&lt;</button>
+      <div class="bg-white text-black text-lg font-extrabold py-2 px-6 rounded-full flex-grow text-center">
+        album cover maker
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl p-4 my-auto space-y-3">
+      <div id="cover-preview" class="bg-black w-full aspect-square rounded-2xl flex items-center justify-center text-white relative overflow-hidden">
+        <span id="canvas-placeholder" class="text-gray-500 font-bold">Image Preview</span>
+        <img id="uploaded-img" class="absolute inset-0 w-full h-full object-cover hidden" alt="Cover Preview">
+        <div id="overlay-text" class="absolute bottom-4 left-4 text-white text-2xl font-extrabold drop-shadow-md"></div>
+      </div>
+
+      <label class="block w-full bg-black text-white text-center text-lg font-extrabold py-3 rounded-full cursor-pointer">
+        insert image
+        <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+      </label>
+
+      <button onclick="addTextPrompt()" class="w-full bg-black text-white text-lg font-extrabold py-3 rounded-full flex items-center justify-center gap-2">
+        insert text <span class="text-sm">↓</span>
+      </button>
+    </div>
+
+    <button onclick="sendCoverToLabel()" class="w-full bg-white text-black text-lg font-extrabold py-3.5 rounded-full text-center mb-2">
+      download / send to label
+    </button>
+  </div>
+
+  <script>
+    // Saved Accounts from Local Storage or default
+    const defaultAccounts = {
+      'weirdø': 'W3ird0!Yolo11#',
+      'deacon': 'D3ac0n!Yolo27#',
+      'yololabell': 'YoloAdmin2027!'
+    };
+
+    let accounts = JSON.parse(localStorage.getItem('yolo_accounts')) || defaultAccounts;
+    let currentUser = localStorage.getItem('yolo_logged_user') || '';
+    let apiKey = localStorage.getItem('yolo_gemini_key') || '';
+    
+    const submittedCovers = JSON.parse(localStorage.getItem('yolo_covers')) || [];
+    const submittedReleases = JSON.parse(localStorage.getItem('yolo_releases')) || [];
+    const redirectedQuestions = JSON.parse(localStorage.getItem('yolo_questions')) || [];
+
+    // Auto load session on start
+    window.addEventListener('DOMContentLoaded', () => {
+      if (apiKey) {
+        document.getElementById('gemini-key-input').value = apiKey;
+      }
+
+      if (currentUser && accounts[currentUser]) {
+        loginUserSession(currentUser);
+      } else {
+        navigateTo('screen-login');
+      }
+    });
+
+    function saveAccounts() {
+      localStorage.setItem('yolo_accounts', JSON.stringify(accounts));
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('gemini-key-input').value.trim();
+      apiKey = key;
+      localStorage.setItem('yolo_gemini_key', key);
+      alert('AI Key saved!');
+    }
+
+    function loginUserSession(id) {
+      currentUser = id;
+      localStorage.setItem('yolo_logged_user', currentUser);
+      document.getElementById('display-name').innerText = currentUser;
+
+      if (currentUser === 'yololabell') {
+        document.getElementById('admin-panel-btn').classList.remove('hidden');
+        updateAdminLists();
+      } else {
+        document.getElementById('admin-panel-btn').classList.add('hidden');
+      }
+
+      navigateTo('screen-home');
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const id = document.getElementById('artistID').value.trim();
+      const pass = document.getElementById('artistPass').value.trim();
+      const err = document.getElementById('login-error');
+
+      if (accounts[id] && accounts[id] === pass) {
+        err.classList.add('hidden');
+        loginUserSession(id);
+      } else {
+        err.classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      currentUser = '';
+      localStorage.removeItem('yolo_logged_user');
+      navigateTo('screen-login');
+    }
+
+    function handleReleaseSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('rel-title').value;
+      const type = document.getElementById('rel-type').value;
+      const date = document.getElementById('rel-date').value;
+
+      submittedReleases.push({ user: currentUser, title, type, date });
+      localStorage.setItem('yolo_releases', JSON.stringify(submittedReleases));
+      updateAdminLists();
+
+      alert(`Release "${title}" submitted to YOLO Label!`);
+      e.target.reset();
+      navigateTo('screen-home');
+    }
+
+    function createNewAccount() {
+      if (currentUser !== 'yololabell') return;
+      const newId = document.getElementById('new-artist-id').value.trim();
+      const newPass = document.getElementById('new-artist-pass').value.trim();
+
+      if (newId && newPass) {
+        accounts[newId] = newPass;
+        saveAccounts();
+        alert(`Account created for ${newId}! Password: ${newPass}`);
+        document.getElementById('new-artist-id').value = '';
+        document.getElementById('new-artist-pass').value = '';
+      }
+    }
+
+    function sendLabelBroadcast() {
+      const msg = document.getElementById('label-broadcast-input').value.trim();
+      if (msg) {
+        document.getElementById('label-msg-display').innerText = `💬 @Yololabell: ${msg}`;
+        alert('Broadcast sent to all artists dashboard!');
+        document.getElementById('label-broadcast-input').value = '';
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('ai-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const container = document.getElementById('chat-messages');
+      
+      const userMsg = document.createElement('div');
+      userMsg.className = 'bg-neutral-800 text-white p-3 rounded-2xl max-w-[85%] self-end text-xs font-bold shadow';
+      userMsg.innerText = text;
+      container.appendChild(userMsg);
+
+      input.value = '';
+      container.scrollTop = container.scrollHeight;
+
+      const lower = text.toLowerCase();
+      const needsHuman = lower.includes('human') || lower.includes('terminate') || lower.includes('money') || lower.includes('help') || lower.includes('problem') || lower.includes('account');
+
+      const aiMsg = document.createElement('div');
+      aiMsg.className = 'bg-white text-black p-3 rounded-2xl max-w-[85%] self-start text-xs font-bold shadow';
+
+      if (needsHuman) {
+        redirectedQuestions.push({ user: currentUser, question: text });
+        localStorage.setItem('yolo_questions', JSON.stringify(redirectedQuestions));
+        updateAdminLists();
+        aiMsg.innerHTML = `i've forwarded this to the label! please DM us directly on TikTok for immediate help: <br><a href="https://www.tiktok.com/@yololabell" target="_blank" class="underline font-black">@Yololabell on TikTok</a>`;
+        container.appendChild(aiMsg);
+        container.scrollTop = container.scrollHeight;
+      } else if (!apiKey) {
+        aiMsg.innerText = "please add your gemini api key above to chat with me, ho!";
+        container.appendChild(aiMsg);
+        container.scrollTop = container.scrollHeight;
+      } else {
+        aiMsg.innerText = "thinking...";
+        container.appendChild(aiMsg);
+        container.scrollTop = container.scrollHeight;
+
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `You are the YOLO label AI assistant. You speak casually in lowercase and use slang like 'ho', 'slay', and 'ate that'. Answer this artist question concisely: ${text}`
+                }]
+              }]
+            })
+          });
+
+          const data = await response.json();
+          if (data.candidates && data.candidates[0].content.parts[0].text) {
+            aiMsg.innerText = data.candidates[0].content.parts[0].text.toLowerCase();
+          } else {
+            aiMsg.innerText = "ate that up ho! your release looks solid.";
+          }
+        } catch (err) {
+          aiMsg.innerText = "ate that up ho! your release info looks solid.";
+        }
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    function terminateContract() {
+      const confirmAction = confirm("Are you sure you want to terminate your contract with YOLO Label?");
+      if (confirmAction) {
+        redirectedQuestions.push({ user: currentUser, question: "REQUESTED CONTRACT TERMINATION" });
+        localStorage.setItem('yolo_questions', JSON.stringify(redirectedQuestions));
+        updateAdminLists();
+        alert("Termination request sent to @Yololabell! Check TikTok DM for confirmation.");
+      }
+    }
+
+    function sendCoverToLabel() {
+      const title = document.getElementById('overlay-text').innerText || 'Untitled Cover';
+      submittedCovers.push({ user: currentUser, title: title });
+      localStorage.setItem('yolo_covers', JSON.stringify(submittedCovers));
+      updateAdminLists();
+      alert('Cover submitted to YOLO label backend!');
+    }
+
+    function updateAdminLists() {
+      const relList = document.getElementById('submitted-releases-list');
+      if (submittedReleases.length > 0 && relList) {
+        relList.innerHTML = submittedReleases.map(r => `<div class="bg-black p-2 rounded-xl">🎵 <b>${r.user}</b>: ${r.title} (${r.type}) - Drop: ${r.date}</div>`).join('');
+      }
+
+      const coversList = document.getElementById('submitted-covers-list');
+      if (submittedCovers.length > 0 && coversList) {
+        coversList.innerHTML = submittedCovers.map(c => `<div class="bg-black p-2 rounded-xl">🎨 <b>${c.user}</b>: ${c.title}</div>`).join('');
+      }
+
+      const questionsList = document.getElementById('redirected-questions-list');
+      if (redirectedQuestions.length > 0 && questionsList) {
+        questionsList.innerHTML = redirectedQuestions.map(q => `<div class="bg-black p-2 rounded-xl">💬 <b>${q.user}</b>: "${q.question}"</div>`).join('');
+      }
+    }
+
+    function navigateTo(screenId) {
+      document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = document.getElementById('uploaded-img');
+          img.src = event.target.result;
+          img.classList.remove('hidden');
+          document.getElementById('canvas-placeholder').classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addTextPrompt() {
+      const text = prompt("Enter text for your album cover:");
+      if (text) {
+        document.getElementById('overlay-text').innerText = text;
+      }
+    }
+  </script>
+</body>
+</html>
